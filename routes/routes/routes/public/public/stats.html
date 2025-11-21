@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Stats</title></head>
+<body>
+  <h1>Link Stats</h1>
+  <div id="content">Open /api/links/:code to see JSON or use this page to fetch a code.</div>
+  <div>
+    <input id="code" placeholder="shortcode" />
+    <button onclick="get()">Get</button>
+  </div>
+  <pre id="out"></pre>
+  <script>
+    async function get(){
+      const code = document.getElementById("code").value;
+      const res = await fetch("/api/links/" + code);
+      const j = await res.json();
+      document.getElementById("out").textContent = JSON.stringify(j, null, 2);
+    }
+  </script>
+</body>
+</html>
