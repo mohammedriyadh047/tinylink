@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>TinyLink — Dashboard</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script>
+    async function createShort() {
+      const url = document.getElementById("url").value;
+      const code = document.getElementById("code").value || undefined;
+      const res = await fetch("/api/shorten", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ url, customCode: code })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        document.getElementById("result").textContent = location.origin + "/" + data.shortcode;
+        await loadLinks();
+      } else {
+        document.getElementById("result").textContent = data.error || "Error";
+      }
+    }
+     async function loadLinks() {
+      const res = await fetch("/api/links");
+      const list = await res.json();
+      const tbody = document.getElementById("links");
+      tbody.innerHTML = "";
+      list.forEach(l => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = <td>${l.shortcode}</td><td style="max-width:360px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.target_url}</td><td>${l.total_clicks}</td><td>${l.last_clicked_at || ''}</td><td><button onclick="del('${l.shortcode}')">Delete</button></td>;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function del(code) {
+      await fetch("/api/delete/" + code, { method: "DELETE" });
+      await loadLinks();
+    }
+
+    window.onload = loadLinks;
+  </script>
+</head>
+<body>
+  <h1>TinyLink</h1>
+  <div>
+    <input id="url" placeholder="https://example.com" style="width:60%" />
+    <input id="code" placeholder="custom code (optional)" />
+    <button onclick="createShort()">Create</button>
+  </div>
+  <div id="result" style="margin-top:8px;color:green"></div>
+  
+ <h2>Links</h2>
+  <table border="1" cellpadding="6">
+    <thead><tr><th>Code</th><th>Target URL</th><th>Clicks</th><th>Last Clicked</th><th>Actions</th></tr></thead>
+    <tbody id="links"></tbody>
+  </table>
+</body>
+</html>
+
